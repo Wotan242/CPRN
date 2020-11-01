@@ -1,0 +1,67 @@
+
+
+
+import netmiko
+
+conn_data_ios = {
+	'ip' : '10.196.0.x',
+	'username' : 'student',
+	'password' : '1234QWer',
+	'device_type' : 'cisco_ios_telnet'
+}
+
+conn_data_nx = {
+	'ip' : '10.196.0.x',
+	'username' : 'admin',
+	'password' : '1234QWer',
+	'device_type' : 'cisco_nxos'
+}
+
+bgp_ios = [
+'router bgp 65000',
+'router-id 100.255.255.x',
+'network 100.0.x.0 mask 255.255.255.0',
+'neighbor 100.255.255.7 remote-as 65000',
+'neighbor 100.255.255.7 update-source loopback0',
+'neighbor 100.255.255.7 next-hop-self',
+'neighbor 200.255.255.7 remote-as 65000',
+'neighbor 200.255.255.7 update-source loopback0',
+'neighbor 200.255.255.7 next-hop-self',
+]
+
+bgp_nx = [
+'router bgp 65000',
+'router-id 200.255.255.x',
+'address-family ipv4 unicast',
+'network 200.0.x.0/24',
+'neighbor 100.255.255.7 remote-as 65000',
+'update-source loopback0',
+'address-family ipv4 unicast',
+'next-hop-self',
+'neighbor 200.255.255.7 remote-as 65000',
+'update-source loopback0',
+'address-family ipv4 unicast',
+'next-hop-self',
+]
+
+
+session_ios = netmiko.ConnectHandler(**conn_data_ios)
+session_ios.send_config_set(config_commands = bgp_ios)
+print(session_ios.send_command('show running | section bgp'))
+print(session_ios.send_command('show bgp ipv4 unicast summary'))
+session_ios.disconnect()
+
+session_nx = netmiko.ConnectHandler(**conn_data_nx)
+session_nx.send_config_set(config_commands = 'feature bgp')
+session_nx.send_config_set(config_commands = bgp_nx)
+print(session_nx.send_command('show running bgp'))
+print(session_nx.send_command('show bgp ipv4 unicast summary'))
+session_nx.disconnect()
+
+
+
+
+
+
+
+

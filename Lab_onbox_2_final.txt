@@ -1,0 +1,121 @@
+Nur Ping zur RID:
+
+NX-OS Version:
+
+[admin@guestshell ~]$ cat OSPF_2.py
+import cli
+
+ospf_neigh_list = cli.cli("show ip ospf neighbor").split("\n")[3:-1]
+
+rid_list = []
+
+for neigh in ospf_neigh_list:
+    rid_list.append(neigh.split(' ')[1])
+
+print(rid_list)
+
+for rid in rid_list:
+     ping  = cli.cli('ping %s count 1' % rid)
+     if '64 bytes from' in ping:
+          print('RID %s is reachable' % rid)
+     else:
+         print('RID %s is not reachable' % rid)
+
+
+IOS-XE Version:
+
+[guestshell@guestshell ~]$ cat OSPF_2.py
+import cli
+
+
+
+ospf_neigh_list = cli.execute("show ip ospf neighbor").split('\n')[1:]
+
+
+rid_list = []
+
+for neigh in ospf_neigh_list:
+    rid_list.append(neigh.split(' ')[0])
+
+for rid in rid_list:
+     ping  = cli.cli('ping %s' % rid)
+     if '!' in ping:
+          print('RID %s is reachable' % rid)
+     else:
+         print('RID %s is not reachable' % rid)
+
+
+
+
+
+Hostname und Ping zur RID in einem Script:
+
+
+NX-OS Version mit JSON:
+
+[admin@guestshell ~]$ cat OSPF_3.py
+import cli
+import json
+
+ospf_neigh_dict = json.loads(cli.clid("show ip ospf neighbor"))
+
+ospf_neigh_list = ospf_neigh_dict['TABLE_ctx']['ROW_ctx']['TABLE_nbr']['ROW_nbr']
+print("RID                   Interface         Hostname")
+for list_entry in ospf_neigh_list:
+    interf = list_entry['intf']
+    rid = list_entry['rid']
+    addr = list_entry['addr']
+    cdp_neigh = json.loads(cli.clid("show cdp neighbor interface %s detail" % interf))['TABLE_cdp_neighbor_detail_info']['ROW_cdp_neighbor_detail_info']
+    if type(cdp_neigh)!= 'list':
+        cdp_neigh_list = [cdp_neigh]
+    else:
+        cdp_neigh_list = cdp_neigh
+    for neigh in cdp_neigh_list:
+        if neigh['v4addr'] == addr:
+            neigh_final = neigh
+    host_neigh = neigh_final['device_id']
+    output = rid  + '       ' + ' '*(15 - len(rid)) + interf + '            ' + host_neigh
+    ping = cli.cli('ping %s count 1' % rid)
+    if '64 bytes from' in ping:
+          output += '    [REACHABLE]'
+    else:
+          output += '    [UNREACHABLE]'
+    print(output)
+
+
+IOS_XE Version mit Flieﬂtext:
+
+
+
+[guestshell@guestshell ~]$ cat OSPF_IOS_3.py
+import cli
+
+ospf_neigh_string = cli.execute("show ip ospf neighbor")
+
+
+ospf_allneigh_list = ospf_neigh_string.split("\n")[1:]
+print('RID                  Interface             Hostname')
+for entry in ospf_allneigh_list:
+    ospf_neigh = entry.split(' ')
+    while '' in ospf_neigh:
+         ospf_neigh.remove('')
+    rid = ospf_neigh[0]
+    interf = ospf_neigh[-1]
+    addr = ospf_neigh[-2]
+    #print (rid , interf)
+    cdp_info_all_neighbors = cli.execute("show cdp neighbor %s detail" % interf).split('-------------------------')[1:]
+
+    #print(cdp_info_all_neighbors)
+    for cdp_neigh in cdp_info_all_neighbors:
+        if addr in cdp_neigh:
+            cdp_neigh_split = cdp_neigh.split('\n')[1:]
+            for list_ele  in cdp_neigh_split:
+                if 'Device ID:' in list_ele:
+                    neigh_hostname = list_ele[10:].lstrip()
+    output = rid + '      ' + ' '*(15 - len(rid)) + interf + '      ' + neigh_hostname
+    ping = cli.execute('ping %s' % rid)
+    if '!' in ping:
+        output += '     [REACHABLE]'
+    else:
+        output += '     [UNREACHABLE]'
+    print(output)

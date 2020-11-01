@@ -1,0 +1,248 @@
+from ncclient import manager
+from ncclient.operations.rpc import RPCError
+from ncclient.transport.errors import SSHError
+import sys
+from copy import copy
+import netmiko
+
+################   global variables ####################################
+
+ns = {'ios':'http://cisco.com/ns/yang/Cisco-IOS-XE-native' , 'nx' : 'http://cisco.com/ns/yang/cisco-nx-os-device'}
+
+xpath_ios = './ios:native/ios:interface/ios:Loopback/ios:ip/ios:address/ios:primary/ios:address'
+xpath_nx = './nx:System/nx:ipv4-items/nx:inst-items/nx:dom-items/nx:Dom-list/nx:if-items/nx:If-list/nx:addr-items/nx:Addr-list/nx:addr'
+
+IPs_IOS = ['192.168.181.11' , '192.168.181.12']
+IPs_NX = ['192.168.181.21' , '192.168.181.22' , '192.168.181.23' , '192.168.181.24']
+
+
+
+################ subtree filter expresions    ############################
+
+filter_ios = '''
+   <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+    <interface>
+      <Loopback>
+      <name>0</name>
+        <ip>
+          <address>
+            <primary>
+              <address/>
+              <mask/>
+            </primary>
+          </address>
+        </ip>
+      </Loopback>
+    </interface>
+  </native>
+
+'''
+
+filter_nx = '''
+   <System xmlns="http://cisco.com/ns/yang/cisco-nx-os-device">
+    <ipv4-items>
+      <inst-items>
+        <dom-items>
+          <Dom-list>
+          <name>default</name>
+            <if-items>
+              <If-list>
+              <id>lo0</id>
+                <addr-items>
+                  <Addr-list>
+                    <addr/>
+                  </Addr-list>
+                </addr-items>
+              </If-list>
+            </if-items>
+          </Dom-list>
+        </dom-items>
+      </inst-items>
+    </ipv4-items>
+  </System>
+
+
+'''
+
+#############   fetch loopbacks main function    ################################
+
+def get_loopback(ip , user , pw , subfilter , xpath, handle):
+
+    with manager.connect(host = ip,
+                     port=830,
+                     username = user,
+                     password = pw,
+                     hostkey_verify=False,
+                     device_params={'name': handle},
+                     allow_agent=False,
+                     look_for_keys=False
+                      ) as nc_session:
+        
+            try:
+                rpc_reply = nc_session.get_config('running', filter=('subtree', subfilter))
+
+            except RPCError as err:
+                for attr in dir(err):
+                    if '_' not in attr:
+                        print(attr, ':   ', getattr(err , attr))
+    root = rpc_reply.data_ele
+    loop_addr_obj = root.findall(xpath , ns)
+    loop_addr = loop_addr_obj[0].text
+    return loop_addr
+
+
+###############   fetch loopbacks nexus       #########################
+
+loopbacks_nx = []
+
+for addr in IPs_NX:
+    loop0 = get_loopback(addr , 'admin' , 'cisco' , filter_nx , xpath_nx , 'nexus')[:-3]
+    loopbacks_nx.append(loop0)
+
+print(loopbacks_nx)
+
+
+############### fetch loopbacks      iosxe     #######################
+
+loopbacks_ios = []
+
+for addr in IPs_IOS:
+    loop0 = get_loopback(addr , 'cisco' , 'cisco' , filter_ios , xpath_ios , 'iosxe')
+    loopbacks_ios.append(loop0)
+
+print(loopbacks_ios)
+
+###############   bgp config   ios base generator functions    ######################
+
+
+def bgp_config_ios_global(asn , rid):
+
+    bgp_config_ios_global =    [
+                       'router bgp %s' % asn ,
+                       'bgp router-id %s' % rid                   
+                       ]
+    return bgp_config_ios_global
+
+def bgp_config_ios_neigh(asn , neigh_ip):
+
+    bgp_config_ios_neigh =    [                   
+                       'neighbor %s remote-as %s' % (neigh_ip , asn) ,
+                       'neighbor %s update-source loopback 0' % neigh_ip ,
+                       'neighbor %s next-hop-self' % neigh_ip
+                       ]
+    return bgp_config_ios_neigh
+
+###############   bgp config   nexus base generator functions    ######################
+
+
+def bgp_config_nx_global(asn , rid):
+
+    bgp_config_nx_global =   [ 
+                       'router bgp %s' % asn , 
+                       'router-id %s' % rid                   
+                       ]
+
+    return bgp_config_nx_global
+
+def bgp_config_nx_neigh(asn , neigh_ip):
+
+    bgp_config_nx_neigh =    [                 
+                       'neighbor %s remote-as %s' %(neigh_ip , asn) ,
+                       'update-source loopback 0' ,
+                       'address-family ipv4 unicast' ,
+                       'next-hop-self'
+                       ]
+
+    return bgp_config_nx_neigh
+
+
+################   per ios router complete bgp config genrator function    ##############
+
+def bgp_config_ios(mgmt_addr , asn):
+    my_loopback =   loopbacks_ios[IPs_IOS.index(mgmt_addr)]
+    loopbacks_ios_local = loopbacks_ios.copy()
+    loopbacks_ios_local.remove(my_loopback)
+    loopbacks_ios_local += loopbacks_nx
+    bgp_config_complete_list = bgp_config_ios_global(asn , my_loopback)
+    for neigh_addr in loopbacks_ios_local:
+        bgp_config_complete_list += bgp_config_ios_neigh(asn , neigh_addr)
+    return bgp_config_complete_list
+
+
+################   per nexus switch complete bgp config genrator function    ##############
+
+def bgp_config_nx(mgmt_addr , asn):
+    my_loopback =   loopbacks_nx[IPs_NX.index(mgmt_addr)]
+    loopbacks_nx_local = loopbacks_nx.copy()
+    loopbacks_nx_local.remove(my_loopback)
+    loopbacks_nx_local += loopbacks_ios
+    bgp_config_complete_list = bgp_config_nx_global(asn , my_loopback)
+    for neigh_addr in loopbacks_nx_local:
+        bgp_config_complete_list += bgp_config_nx_neigh(asn , neigh_addr)
+    return bgp_config_complete_list
+
+
+##################   apply functions       #####################################
+
+#### USER INPUT AREA ##########
+
+my_ios_ip = '192.168.181.11' 
+
+my_nx_ip = '192.168.181.22'
+
+our_asn = '65000'
+
+##########################
+
+bgp_final_ios = bgp_config_ios(my_ios_ip , our_asn)
+
+print(bgp_final_ios)
+
+string_ios = ''
+for li in bgp_final_ios:
+    string_ios += li + '\n'
+print(string_ios)
+
+bgp_final_nx = bgp_config_nx(my_nx_ip , our_asn)
+
+print(bgp_final_nx)
+
+string_nx = ''
+for li in bgp_final_nx:
+    string_nx += li + '\n'
+print(string_nx)
+
+
+
+##################### Push Configuration to my Devices     ########################
+
+session_nx = netmiko.ConnectHandler(ip = my_nx_ip , 
+                                 username = 'admin' , 
+                                 password = 'cisco' , 
+                                 device_type = "cisco_nxos")
+
+session_ios = netmiko.ConnectHandler(ip = my_ios_ip , 
+                                 username = 'cisco' , 
+                                 password = 'cisco' , 
+                                 device_type = "cisco_ios")
+
+
+session_nx.send_config_set(config_commands = 'feature bgp')
+session_nx.send_config_set(config_commands = bgp_final_nx)
+session_nx.disconnect()
+
+
+session_ios.send_config_set(config_commands = bgp_final_ios)
+session_ios.disconnect()
+
+
+
+
+
+
+
+    
+
+
+
+
