@@ -1,0 +1,965 @@
+Description Eraser mit cli():
+
+from cli import *
+import json
+
+input = cli("show interface status")
+
+input_list = input.split('\n')
+input_short = input_list[9:-5]
+
+interface_list = []
+
+for string in input_short:
+    string_list = string.split(' ')
+    interface_list.append(string_list[0])
+
+for intf in interface_list:
+    cmd = "configure ; interface %s ; no description" % intf
+    print(cmd)
+    cli(cmd)
+
+
+
+[admin@guestshell ~]$ dohost "show running interface loopback 242"
+
+!Command: show running-config interface loopback242
+!Running configuration last done at: Wed Apr 15 15:12:34 2020
+!Time: Wed Apr 15 15:13:07 2020
+
+version 9.3(2) Bios:version 05.39
+
+interface loopback242
+  description HALLO
+  ip address 24.24.24.24/32
+
+[admin@guestshell ~]$ python descr_eraser.py
+configure ; interface Eth1/1 ; no description
+configure ; interface Eth1/2 ; no description
+configure ; interface Eth1/3 ; no description
+configure ; interface Eth1/4 ; no description
+configure ; interface Eth1/5 ; no description
+configure ; interface Eth1/6 ; no description
+configure ; interface Eth1/7 ; no description
+configure ; interface Eth1/8 ; no description
+configure ; interface Eth1/9 ; no description
+configure ; interface Eth1/10 ; no description
+configure ; interface Eth1/11 ; no description
+configure ; interface Eth1/12 ; no description
+configure ; interface Eth1/13 ; no description
+configure ; interface Eth1/14 ; no description
+configure ; interface Eth1/15 ; no description
+configure ; interface Eth1/16 ; no description
+configure ; interface Eth1/17 ; no description
+configure ; interface Eth1/18 ; no description
+configure ; interface Eth1/19 ; no description
+configure ; interface Eth1/20 ; no description
+configure ; interface Eth1/21 ; no description
+configure ; interface Eth1/22 ; no description
+configure ; interface Eth1/23 ; no description
+configure ; interface Eth1/24 ; no description
+configure ; interface Eth1/25 ; no description
+configure ; interface Eth1/26 ; no description
+configure ; interface Eth1/27 ; no description
+configure ; interface Eth1/28 ; no description
+configure ; interface Eth1/29 ; no description
+configure ; interface Eth1/30 ; no description
+configure ; interface Eth1/31 ; no description
+configure ; interface Eth1/32 ; no description
+configure ; interface Eth1/33 ; no description
+configure ; interface Eth1/34 ; no description
+configure ; interface Eth1/35 ; no description
+configure ; interface Eth1/36 ; no description
+configure ; interface Eth1/37 ; no description
+configure ; interface Eth1/38 ; no description
+configure ; interface Eth1/39 ; no description
+configure ; interface Eth1/40 ; no description
+configure ; interface Eth1/41 ; no description
+configure ; interface Eth1/42 ; no description
+configure ; interface Eth1/43 ; no description
+configure ; interface Eth1/44 ; no description
+configure ; interface Eth1/45 ; no description
+configure ; interface Eth1/46 ; no description
+configure ; interface Eth1/47 ; no description
+configure ; interface Eth1/48 ; no description
+configure ; interface Eth1/49 ; no description
+configure ; interface Eth1/50 ; no description
+configure ; interface Eth1/51 ; no description
+configure ; interface Eth1/52 ; no description
+configure ; interface Eth1/53 ; no description
+configure ; interface Eth1/54 ; no description
+configure ; interface Po12 ; no description
+configure ; interface Po33 ; no description
+configure ; interface Po191 ; no description
+configure ; interface Po193 ; no description
+configure ; interface Lo0 ; no description
+configure ; interface Lo242 ; no description
+configure ; interface Lo243 ; no description
+configure ; interface Vlan1 ; no description
+configure ; interface Vlan91 ; no description
+[admin@guestshell ~]$ dohost "show running interface loopback 242"
+
+!Command: show running-config interface loopback242
+!Running configuration last done at: Wed Apr 15 15:13:31 2020
+!Time: Wed Apr 15 15:13:49 2020
+
+version 9.3(2) Bios:version 05.39
+
+interface loopback242
+  ip address 24.24.24.24/32
+
+[admin@guestshell ~]$
+
+
+
+Description Eraser mit clid():
+
+from cli import *
+import json
+
+input = clid("show interface status")
+
+input_dict = json.loads(input)
+
+#print(input_dict)
+
+interface_list = input_dict[u'TABLE_interface'][u'ROW_interface']
+
+intf_list = []
+
+for dict in interface_list:
+     intf_list.append(str(dict[u'interface']))
+
+print(intf_list)
+
+for intf in intf_list:
+    cmd = 'configure ; interface {if1} ; no description'.format(if1  = intf)
+    print(cmd)
+    cli(cmd)
+
+[admin@guestshell ~]$ dohost "show running interface loopback 242"
+
+!Command: show running-config interface loopback242
+!Running configuration last done at: Wed Apr 15 15:15:13 2020
+!Time: Wed Apr 15 15:15:19 2020
+
+version 9.3(2) Bios:version 05.39
+
+interface loopback242
+  description HALLO
+  ip address 24.24.24.24/32
+
+
+
+
+[admin@guestshell ~]$ python descr_eraser_json.py
+['mgmt0', 'Ethernet1/1', 'Ethernet1/2', 'Ethernet1/3', 'Ethernet1/4', 'Ethernet1/5', 'Ethernet1/6', 'Ethernet1/7', 'Ethernet1/8', 'Ethernet1/9', 'Ethernet1/10', 'Ethernet1/11', 'Ethernet1/12', 'Ethernet1/13', 'Ethernet1/14', 'Ethernet1/15', 'Ethernet1/16', 'Ethernet1/17', 'Ethernet1/18', 'Ethernet1/19', 'Ethernet1/20', 'Ethernet1/21', 'Ethernet1/22', 'Ethernet1/23', 'Ethernet1/24', 'Ethernet1/25', 'Ethernet1/26', 'Ethernet1/27', 'Ethernet1/28', 'Ethernet1/29', 'Ethernet1/30', 'Ethernet1/31', 'Ethernet1/32', 'Ethernet1/33', 'Ethernet1/34', 'Ethernet1/35', 'Ethernet1/36', 'Ethernet1/37', 'Ethernet1/38', 'Ethernet1/39', 'Ethernet1/40', 'Ethernet1/41', 'Ethernet1/42', 'Ethernet1/43', 'Ethernet1/44', 'Ethernet1/45', 'Ethernet1/46', 'Ethernet1/47', 'Ethernet1/48', 'Ethernet1/49', 'Ethernet1/50', 'Ethernet1/51', 'Ethernet1/52', 'Ethernet1/53', 'Ethernet1/54', 'port-channel12', 'port-channel33', 'port-channel191', 'port-channel193', 'loopback0', 'loopback242', 'loopback243', 'Vlan1', 'Vlan91', 'Vlan191', 'Vlan193']
+configure ; interface mgmt0 ; no description
+configure ; interface Ethernet1/1 ; no description
+configure ; interface Ethernet1/2 ; no description
+configure ; interface Ethernet1/3 ; no description
+configure ; interface Ethernet1/4 ; no description
+configure ; interface Ethernet1/5 ; no description
+configure ; interface Ethernet1/6 ; no description
+configure ; interface Ethernet1/7 ; no description
+configure ; interface Ethernet1/8 ; no description
+configure ; interface Ethernet1/9 ; no description
+configure ; interface Ethernet1/10 ; no description
+configure ; interface Ethernet1/11 ; no description
+configure ; interface Ethernet1/12 ; no description
+configure ; interface Ethernet1/13 ; no description
+configure ; interface Ethernet1/14 ; no description
+configure ; interface Ethernet1/15 ; no description
+configure ; interface Ethernet1/16 ; no description
+configure ; interface Ethernet1/17 ; no description
+configure ; interface Ethernet1/18 ; no description
+configure ; interface Ethernet1/19 ; no description
+configure ; interface Ethernet1/20 ; no description
+configure ; interface Ethernet1/21 ; no description
+configure ; interface Ethernet1/22 ; no description
+configure ; interface Ethernet1/23 ; no description
+configure ; interface Ethernet1/24 ; no description
+configure ; interface Ethernet1/25 ; no description
+configure ; interface Ethernet1/26 ; no description
+configure ; interface Ethernet1/27 ; no description
+configure ; interface Ethernet1/28 ; no description
+configure ; interface Ethernet1/29 ; no description
+configure ; interface Ethernet1/30 ; no description
+configure ; interface Ethernet1/31 ; no description
+configure ; interface Ethernet1/32 ; no description
+configure ; interface Ethernet1/33 ; no description
+configure ; interface Ethernet1/34 ; no description
+configure ; interface Ethernet1/35 ; no description
+configure ; interface Ethernet1/36 ; no description
+configure ; interface Ethernet1/37 ; no description
+configure ; interface Ethernet1/38 ; no description
+configure ; interface Ethernet1/39 ; no description
+configure ; interface Ethernet1/40 ; no description
+configure ; interface Ethernet1/41 ; no description
+configure ; interface Ethernet1/42 ; no description
+configure ; interface Ethernet1/43 ; no description
+configure ; interface Ethernet1/44 ; no description
+configure ; interface Ethernet1/45 ; no description
+configure ; interface Ethernet1/46 ; no description
+configure ; interface Ethernet1/47 ; no description
+configure ; interface Ethernet1/48 ; no description
+configure ; interface Ethernet1/49 ; no description
+configure ; interface Ethernet1/50 ; no description
+configure ; interface Ethernet1/51 ; no description
+configure ; interface Ethernet1/52 ; no description
+configure ; interface Ethernet1/53 ; no description
+configure ; interface Ethernet1/54 ; no description
+configure ; interface port-channel12 ; no description
+configure ; interface port-channel33 ; no description
+configure ; interface port-channel191 ; no description
+configure ; interface port-channel193 ; no description
+configure ; interface loopback0 ; no description
+configure ; interface loopback242 ; no description
+configure ; interface loopback243 ; no description
+configure ; interface Vlan1 ; no description
+configure ; interface Vlan91 ; no description
+configure ; interface Vlan191 ; no description
+configure ; interface Vlan193 ; no description
+[admin@guestshell ~]$
+
+
+[admin@guestshell ~]$ dohost "show running interface loopback 242"
+
+!Command: show running-config interface loopback242
+!Running configuration last done at: Wed Apr 15 15:16:38 2020
+!Time: Wed Apr 15 15:17:25 2020
+
+version 9.3(2) Bios:version 05.39
+
+interface loopback242
+  ip address 24.24.24.24/32
+
+
+[admin@guestshell ~]$ dohost "show interface description"
+
+-------------------------------------------------------------------------------
+Interface                Description
+-------------------------------------------------------------------------------
+mgmt0                    --
+
+-------------------------------------------------------------------------------
+Port          Type   Speed   Description
+-------------------------------------------------------------------------------
+Eth1/1        eth    1000    --
+Eth1/2        eth    1000    --
+Eth1/3        eth    1000    --
+Eth1/4        eth    1000    --
+Eth1/5        eth    1000    --
+Eth1/6        eth    1000    --
+Eth1/7        eth    1000    --
+Eth1/8        eth    1000    --
+Eth1/9        eth    1000    --
+Eth1/10       eth    1000    --
+Eth1/11       eth    1000    --
+Eth1/12       eth    1000    --
+Eth1/13       eth    1000    --
+Eth1/14       eth    1000    --
+Eth1/15       eth    1000    --
+Eth1/16       eth    1000    --
+Eth1/17       eth    1000    --
+Eth1/18       eth    1000    --
+Eth1/19       eth    1000    --
+Eth1/20       eth    1000    --
+Eth1/21       eth    1000    --
+Eth1/22       eth    1000    --
+Eth1/23       eth    1000    --
+Eth1/24       eth    1000    --
+Eth1/25       eth    1000    --
+Eth1/26       eth    1000    --
+Eth1/27       eth    1000    --
+Eth1/28       eth    1000    --
+Eth1/29       eth    1000    --
+Eth1/30       eth    1000    --
+Eth1/31       eth    1000    --
+Eth1/32       eth    1000    --
+Eth1/33       eth    1000    --
+Eth1/34       eth    1000    --
+Eth1/35       eth    1000    --
+Eth1/36       eth    1000    --
+Eth1/37       eth    1000    --
+Eth1/38       eth    1000    --
+Eth1/39       eth    1000    --
+Eth1/40       eth    1000    --
+Eth1/41       eth    1000    --
+Eth1/42       eth    1000    --
+Eth1/43       eth    1000    --
+Eth1/44       eth    1000    --
+Eth1/45       eth    1000    --
+Eth1/46       eth    1000    --
+Eth1/47       eth    1000    --
+Eth1/48       eth    1000    --
+Eth1/49       eth    10G     --
+Eth1/50       eth    10G     --
+Eth1/51       eth    10G     --
+Eth1/52       eth    25G     --
+Eth1/53       eth    100G    --
+Eth1/54       eth    100G    --
+
+-------------------------------------------------------------------------------
+Interface                Description
+-------------------------------------------------------------------------------
+Po12                     --
+Po33                     --
+Po191                    --
+Po193                    --
+
+-------------------------------------------------------------------------------
+Interface                Description
+-------------------------------------------------------------------------------
+Lo0                      --
+Lo242                    --
+Lo243                    --
+
+-------------------------------------------------------------------------------
+Interface                Description
+-------------------------------------------------------------------------------
+Vlan1                    --
+Vlan91                   --
+Vlan191                  --
+Vlan193                  --
+
+
+
+Description Automizer mit cli():
+
+from cli import *
+
+cdp_neigh = cli("show cdp neighbors")
+cdp_neigh_list = cdp_neigh.split('\n')
+cdp_neigh_short = cdp_neigh_list[6:]
+cdp_neigh_short.pop()
+cdp_neigh_short.pop()
+cdp_neigh_short.pop()
+
+length = len(cdp_neigh_short)/2
+print(cdp_neigh_short)
+
+i = 0
+neigh = []
+rest = []
+while i <= length - 1:
+    neigh.append(cdp_neigh_short[2*i])
+    rest.append(cdp_neigh_short[2*i+1])
+    i += 1
+
+sintf = []
+dintf = []
+
+for string in rest:
+   # sintf.append(string[20:35].rstrip())
+   # dintf.append(string[66:].rstrip())
+   intf_list = string.split(' ')
+   while '' in intf_list:
+       intf_list.remove('')
+   sintf.append(intf_list[0])
+   dintf.append(intf_list[-1])
+
+neigh_count = len(neigh)
+
+i = 0
+while i <= neigh_count - 1:
+    cmd = "configure ; interface %s ; description Link -> %s %s *** from Python
+***" % (sintf[i], neigh[i], dintf[i])
+    print(cmd)
+    cli(cmd)
+    i += 1
+
+
+[admin@guestshell ~]$ dohost "show cdp neighbor"
+Capability Codes: R - Router, T - Trans-Bridge, B - Source-Route-Bridge
+                  S - Switch, H - Host, I - IGMP, r - Repeater,
+                  V - VoIP-Phone, D - Remotely-Managed-Device,
+                  s - Supports-STP-Dispute
+
+Device-ID          Local Intrfce  Hldtme Capability  Platform      Port ID
+IS-C3550A.experteach.local
+                    mgmt0          145    R S I     WS-C3550-24   Fas0/9
+N9K2.experteach.local(FDO214701BS)
+                    Eth1/49        147    R S I s   N9K-C9348GC-F Eth1/49
+N9K2.experteach.local(FDO214701BS)
+                    Eth1/50        150    R S I s   N9K-C9348GC-F Eth1/50
+N9K4.experteach.local(FDO21450XCB)
+                    Eth1/53        135    R S I s   N9K-C9348GC-F Eth1/53
+N9K3.experteach.local(FDO21470828)
+                    Eth1/54        134    R S I s   N9K-C9348GC-F Eth1/54
+
+Total entries displayed: 5
+
+
+[admin@guestshell ~]$ python descr_automizer.py
+['IS-C3550A.experteach.local', '                    mgmt0          178    R S I     WS-C3550-24   Fas0/9        ', 'N9K2.experteach.local(FDO214701BS)', '                    Eth1/49        120    R S I s   N9K-C9348GC-F Eth1/49       ', 'N9K2.experteach.local(FDO214701BS)', '                    Eth1/50        123    R S I s   N9K-C9348GC-F Eth1/50       ', 'N9K4.experteach.local(FDO21450XCB)', '                    Eth1/53        168    R S I s   N9K-C9348GC-F Eth1/53       ', 'N9K3.experteach.local(FDO21470828)', '                    Eth1/54        167    R S I s   N9K-C9348GC-F Eth1/54       ']
+configure ; interface mgmt0 ; description Link -> IS-C3550A.experteach.local Fas0/9 *** from Python ***
+configure ; interface Eth1/49 ; description Link -> N9K2.experteach.local(FDO214701BS) Eth1/49 *** from Python ***
+configure ; interface Eth1/50 ; description Link -> N9K2.experteach.local(FDO214701BS) Eth1/50 *** from Python ***
+configure ; interface Eth1/53 ; description Link -> N9K4.experteach.local(FDO21450XCB) Eth1/53 *** from Python ***
+configure ; interface Eth1/54 ; description Link -> N9K3.experteach.local(FDO21470828) Eth1/54 *** from Python ***
+
+
+
+[admin@guestshell ~]$ dohost "show running interface eth1/49
+> "
+
+!Command: show running-config interface Ethernet1/49
+!Running configuration last done at: Wed Apr 15 15:22:51 2020
+!Time: Wed Apr 15 15:24:08 2020
+
+version 9.3(2) Bios:version 05.39
+
+interface Ethernet1/49
+  description Link -> N9K2.experteach.local(FDO214701BS) Eth1/49 *** from Python ***
+  switchport mode trunk
+  switchport trunk allowed vlan 91-93,191,193
+  channel-group 12
+
+[admin@guestshell ~]$ python descr_eraser_json.py
+
+
+!Command: show running-config interface Ethernet1/49
+!Running configuration last done at: Wed Apr 15 15:24:47 2020
+!Time: Wed Apr 15 15:25:03 2020
+
+version 9.3(2) Bios:version 05.39
+
+interface Ethernet1/49
+  switchport mode trunk
+  switchport trunk allowed vlan 91-93,191,193
+  channel-group 12
+
+[admin@guestshell ~]$
+
+Description Automizer mit clid():
+
+import json
+from cli import *
+
+cdp_input = clid("show cdp neighbor")
+cdp_json = json.loads(cdp_input)
+
+list_in = cdp_json['TABLE_cdp_neighbor_brief_info']['ROW_cdp_neighbor_brief_info']
+
+neigh = []
+sintf = []
+dintf = []
+descr = []
+for dicts in list_in:
+    neigh_id = str(dicts[u'device_id'])
+    sintf_id = str(dicts[u'intf_id'])
+    dintf_id = str(dicts[u'port_id'])
+ descr_id = "Link to %s Interface %s --- provided by Python" % (neigh_id, dintf_id)
+    neigh.append(neigh_id)
+    sintf.append(sintf_id)
+    dintf.append(dintf_id)
+    descr.append(descr_id)
+
+i = 0
+
+while i <= len(neigh) - 1 :
+
+    cmd = "configure ; interface %s ; description %s" % (sintf[i], descr[i])
+    print(cmd)
+    cli_out = cli(cmd)
+    print(cli_out)
+    i += 1
+
+[admin@guestshell ~]$ python descr_automizer_json.py
+
+[{u'platform_id': u'Cisco WS-C3550-24', u'intf_id': u'mgmt0', u'capability': [u'router', u'switch', u'IGMP_cnd_filtering'], u'ttl': u'145', u'ifindex': u'83886080', u'port_id': u'FastEthernet0/9', u'device_id': u'IS-C3550A.experteach.local'}, {u'platform_id': u'N9K-C9348GC-FXP', u'intf_id': u'Ethernet1/49', u'capability': [u'router', u'switch', u'IGMP_cnd_filtering', u'Supports-STP-Dispute'], u'ttl': u'147', u'ifindex': u'436232192', u'port_id': u'Ethernet1/49', u'device_id': u'N9K2.experteach.local(FDO214701BS)'}, {u'platform_id': u'N9K-C9348GC-FXP', u'intf_id': u'Ethernet1/50', u'capability': [u'router', u'switch', u'IGMP_cnd_filtering', u'Supports-STP-Dispute'], u'ttl': u'150', u'ifindex': u'436232704', u'port_id': u'Ethernet1/50', u'device_id': u'N9K2.experteach.local(FDO214701BS)'}, {u'platform_id': u'N9K-C9348GC-FXP', u'intf_id': u'Ethernet1/53', u'capability': [u'router', u'switch', u'IGMP_cnd_filtering', u'Supports-STP-Dispute'], u'ttl': u'135', u'ifindex': u'436234240', u'port_id': u'Ethernet1/53', u'device_id': u'N9K4.experteach.local(FDO21450XCB)'}, {u'platform_id': u'N9K-C9348GC-FXP', u'intf_id': u'Ethernet1/54', u'capability': [u'router', u'switch', u'IGMP_cnd_filtering', u'Supports-STP-Dispute'], u'ttl': u'134', u'ifindex': u'436234752', u'port_id': u'Ethernet1/54', u'device_id': u'N9K3.experteach.local(FDO21470828)'}]
+['IS-C3550A.experteach.local', 'N9K2.experteach.local(FDO214701BS)', 'N9K2.experteach.local(FDO214701BS)', 'N9K4.experteach.local(FDO21450XCB)', 'N9K3.experteach.local(FDO21470828)']
+['mgmt0', 'Ethernet1/49', 'Ethernet1/50', 'Ethernet1/53', 'Ethernet1/54']
+['FastEthernet0/9', 'Ethernet1/49', 'Ethernet1/50', 'Ethernet1/53', 'Ethernet1/54']
+['Link to IS-C3550A.experteach.local Interface FastEthernet0/9 --- provided by Python', 'Link to N9K2.experteach.local(FDO214701BS) Interface Ethernet1/49 --- provided by Python', 'Link to N9K2.experteach.local(FDO214701BS) Interface Ethernet1/50 --- provided by Python', 'Link to N9K4.experteach.local(FDO21450XCB) Interface Ethernet1/53 --- provided by Python', 'Link to N9K3.experteach.local(FDO21470828) Interface Ethernet1/54 --- provided by Python']
+configure ; interface mgmt0 ; description Link to IS-C3550A.experteach.local Interface FastEthernet0/9 --- provided by Python
+Enter configuration commands, one per line. End with CNTL/Z.
+
+configure ; interface Ethernet1/49 ; description Link to N9K2.experteach.local(FDO214701BS) Interface Ethernet1/49 --- provided by Python
+Enter configuration commands, one per line. End with CNTL/Z.
+
+configure ; interface Ethernet1/50 ; description Link to N9K2.experteach.local(FDO214701BS) Interface Ethernet1/50 --- provided by Python
+Enter configuration commands, one per line. End with CNTL/Z.
+
+configure ; interface Ethernet1/53 ; description Link to N9K4.experteach.local(FDO21450XCB) Interface Ethernet1/53 --- provided by Python
+Enter configuration commands, one per line. End with CNTL/Z.
+
+configure ; interface Ethernet1/54 ; description Link to N9K3.experteach.local(FDO21470828) Interface Ethernet1/54 --- provided by Python
+Enter configuration commands, one per line. End with CNTL/Z.
+
+[admin@guestshell ~]$ dohost "show running interface eth1/49
+"
+
+!Command: show running-config interface Ethernet1/49
+!Running configuration last done at: Wed Apr 15 15:27:24 2020
+!Time: Wed Apr 15 15:27:35 2020
+
+version 9.3(2) Bios:version 05.39
+
+interface Ethernet1/49
+  description Link to N9K2.experteach.local(FDO214701BS) Interface Ethernet1/49 --- provided by Python
+  switchport mode trunk
+  switchport trunk allowed vlan 91-93,191,193
+  channel-group 12
+
+
+
+Selektion in spaces eingebetteter Text-Elemente:
+
+string_input = "                HALLO            HIER     IST               WOTAN       "
+string_list = string_input.split(' ')
+print(string_list)
+while '' in string_list:
+	string_list.remove('')
+
+print(string_list)
+print(string_list[0])
+print(string_list[1])
+print(string_list[2])
+print(string_list[3])
+
+
+
+et@ubuntu:~/Python/TESTs$ python string_select.py 
+['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'HALLO', '', '', '', '', '', '', '', '', '', '', '', 'HIER', '', '', '', '', 'IST', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'WOTAN', '', '', '', '', '', '', '']
+['HALLO', 'HIER', 'IST', 'WOTAN']
+HALLO
+HIER
+IST
+WOTAN
+
+
+Port Finder:
+
+from cli import *
+import sys
+import json
+
+addr_in = str(sys.argv[1])
+
+if '.' not in addr_in:
+     print("Invalid IP Address")
+
+ip_list = addr_in.split(".")
+
+if len(ip_list) != 4:
+     print("Invalid IP Address")
+for ip in ip_list:
+     if int(ip) <= 0 or int(ip) > 255:
+         print("Invalid IP Address")
+
+ping = cli("ping %s" % addr_in)
+
+if 'Unreachable' in ping or 'timed out' in ping:
+      print("IP Address %s UNREACHABLE" % addr_in)
+else:
+      print("IP Address %s REACHABLE" % addr_in)
+
+arp  = json.loads(clid("show ip arp %s" % addr_in))
+
+try:
+      row = arp["TABLE_vrf"]["ROW_vrf"]["TABLE_adj"]["ROW_adj"]
+      mac = row["mac"]
+except KeyError:
+      print("No MAC Address in ARP Table")
+else:
+      print("IP Address %s in ARP Table, MAC Address is %s" % (addr_in, mac))
+      try:
+           mac_table = json.loads(clid("show mac address-table address %s" % mac))
+      except structured_output_not_supported_error:
+           print("MAC Address %s not in MAC Address Table" % mac)
+      else:
+           port  = mac_table["TABLE_mac_address"]["ROW_mac_address"]["disp_port"]
+           print("IP Address %s with MAC Address %s is behind Interface %s" % (addr_in, mac, port))
+
+N9K1# sho ip arp
+
+Flags: * - Adjacencies learnt on non-active FHRP router
+       + - Adjacencies synced via CFSoE
+       # - Adjacencies Throttled for Glean
+       CP - Added via L2RIB, Control plane Adjacencies
+       PS - Added via L2RIB, Peer Sync
+       RO - Re-Originated Peer Sync Entry
+       D - Static Adjacencies attached to down interface
+
+IP ARP Table for context default
+Total number of entries: 4
+Address         Age       MAC Address     Interface       Flags
+10.90.193.92    00:04:52  005d.73ec.218b  Vlan193
+10.90.191.92    00:04:52  005d.73ec.218b  Vlan191
+10.90.191.123   00:17:06  0026.9827.cc44  Vlan191         +
+10.90.191.66       -      0000.affe.dead  Vlan191
+
+
+N9K1# sho running-config interf vlan 191
+
+!Command: show running-config interface Vlan191
+!Running configuration last done at: Fri Apr 17 10:18:41 2020
+!Time: Fri Apr 17 12:31:54 2020
+
+version 9.3(2) Bios:version 05.39
+
+interface Vlan191
+  no shutdown
+  no ip redirects
+  ip address 10.90.191.91/24
+  no ipv6 redirects
+  ip arp 10.90.191.66 0000.affe.dead
+
+
+MAC 0000.affe.dead ist fiktiv und nicht in der MAC Address Table
+
+
+N9K1# guestshell run python port_finder.py 10.90.191.77
+IP Address 10.90.191.77 UNREACHABLE
+No MAC Address in ARP Table
+N9K1# guestshell run python port_finder.py 10.90.191.66
+IP Address 10.90.191.66 UNREACHABLE
+IP Address 10.90.191.66 in ARP Table, MAC Address is 0000.affe.dead
+MAC Address 0000.affe.dead not in MAC Address Table
+N9K1# guestshell run python port_finder.py 10.90.191.123
+IP Address 10.90.191.123 REACHABLE
+IP Address 10.90.191.123 in ARP Table, MAC Address is 0026.9827.cc44
+IP Address 10.90.191.123 with MAC Address 0026.9827.cc44 is behind Interface Po191
+[admin@guestshell ~]$ python port_finder.py 10.90.191.77
+IP Address 10.90.191.77 UNREACHABLE
+No MAC Address in ARP Table
+
+
+Lastschwankungsdedektor:
+
+- alle connected Interfaces werden ermittelt
+- 30 sec last mittel in Bps in und out wir bestimmt
+- abfrage erfolgt periodich, das delta zur letzten abfrage wird bestimmt
+- beim überschreiten eines schwellwerts wird für das Interface ein ALARM ausgegeben
+
+
+[admin@guestshell ~]$ cat activeif_1.py
+import cli
+import sys
+import time
+import copy
+
+
+intv = int(sys.argv[1])
+alarm_thr = int(sys.argv[2])
+
+def stats():
+
+    if_string = cli.cli('show interface status')
+
+    #print(if_string)
+
+    if_string_list = if_string.split('\n')
+
+
+    if_list = []
+    for str in if_string_list:
+        if 'connected' in str:
+            intf = str.split(' ')[0]
+            if 'Eth' in intf or 'Po' in intf:
+                if_list.append(intf)
+
+
+
+    result_dict = {}
+
+    for intf in if_list:
+        if_stats_string = cli.cli('show interface %s' % intf)
+        if_stats_list = if_stats_string.split('\n')
+
+
+        idx = if_stats_list.index('  Load-Interval #1: 30 seconds')
+        rin = if_stats_list[idx + 1].split(' ')[8]
+        rout = if_stats_list[idx + 2].split(' ')[8]
+        #print(rin, rout)
+        result_dict[intf] = {'Rate In' : rin , 'Rate Out' : rout}
+
+
+    return [result_dict , if_list]
+
+
+res_old = stats()[0]
+
+print(res_old)
+
+
+i = 1
+
+while i == 1:
+    time.sleep(intv)
+    res_new = stats()[0]
+    if_list = stats()[1]
+    out_string = ''
+    for intf in if_list:
+        deltain = int(res_new[intf]['Rate In']) - int(res_old[intf]['Rate In'])
+        deltaout = int(res_new[intf]['Rate Out']) - int(res_old[intf]['Rate Out'])
+        out_string += 'Interface ' + intf + '   In=' + res_new[intf]['Rate In'] + '  Delta In=' + str(deltain) +  '    Out=' + res_new[intf]['Rate Out'] + '  Delta Out=' + str(deltaout)
+
+        if abs(deltain) > alarm_thr or abs(deltaout) > alarm_thr:
+            out_string += '    #ALARM#'
+
+        out_string += '\n'
+    print(out_string)
+    res_old = res_new.copy()
+
+
+Mit Fehlerbehandlung beim Ändern eines Interface-zustands:
+
+[admin@guestshell ~]$ cat activeif_2.py
+import cli
+import sys
+import time
+import copy
+
+intv = int(sys.argv[1])
+alarm_thr = int(sys.argv[2])
+
+def stats():
+
+    if_string = cli.cli('show interface status')
+    if_string_list = if_string.split('\n')
+
+    if_list = []
+    for str in if_string_list:
+        if 'connected' in str:
+            intf = str.split(' ')[0]
+            if 'Eth' in intf or 'Po' in intf:
+                if_list.append(intf)
+
+    result_dict = {}
+    for intf in if_list:
+        if_stats_string = cli.cli('show interface %s' % intf)
+        if_stats_list = if_stats_string.split('\n')
+        idx = if_stats_list.index('  Load-Interval #1: 30 seconds')
+        rin = if_stats_list[idx + 1].split(' ')[8]
+        rout = if_stats_list[idx + 2].split(' ')[8]
+        result_dict[intf] = {'Rate In' : rin , 'Rate Out' : rout}
+    return [result_dict , if_list]
+
+res_old = stats()[0]
+
+i = 1
+while i == 1:
+    time.sleep(intv)
+    res_new = stats()[0]
+    if_list = stats()[1]
+    out_string = ''
+    for intf in if_list:
+        try:
+            deltain = int(res_new[intf]['Rate In']) - int(res_old[intf]['Rate In'])
+            deltaout = int(res_new[intf]['Rate Out']) - int(res_old[intf]['Rate Out'])
+            out_string += 'Interface ' + intf + '   In=' + res_new[intf]['Rate In'] + '  Delta In=' + str(deltain) +  '    Out=' + res_new[intf]['Rate Out'] + '  Delta Out=' + str(deltaout)
+
+            if abs(deltain) > alarm_thr or abs(deltaout) > alarm_thr:
+                out_string += '    #ALARM#'
+            out_string += '\n'
+
+        except KeyError:
+            print("Active interface state change in runtime execution!\n")
+    print(out_string)
+    res_old = res_new.copy()
+
+
+
+
+[admin@guestshell ~]$ python activeif_2.py 5 400
+
+Interface Eth1/12   In=136  Delta In=72    Out=248  Delta Out=0
+Interface Eth1/49   In=3568  Delta In=-720    Out=3432  Delta Out=56    #ALARM#
+Interface Eth1/50   In=0  Delta In=-528    Out=0  Delta Out=0    #ALARM#
+Interface Eth1/53   In=320  Delta In=136    Out=1248  Delta Out=72
+Interface Eth1/54   In=416  Delta In=128    Out=208  Delta Out=0
+Interface Po12   In=3568  Delta In=-1248    Out=3432  Delta Out=56    #ALARM#
+Interface Po193   In=736  Delta In=264    Out=1456  Delta Out=72
+
+Interface Eth1/12   In=144  Delta In=8    Out=336  Delta Out=88
+Interface Eth1/49   In=4272  Delta In=704    Out=3192  Delta Out=-240    #ALARM#
+Interface Eth1/50   In=0  Delta In=0    Out=0  Delta Out=0
+Interface Eth1/53   In=184  Delta In=-136    Out=1216  Delta Out=-32
+Interface Eth1/54   In=272  Delta In=-144    Out=408  Delta Out=200
+Interface Po12   In=4272  Delta In=704    Out=3192  Delta Out=-240    #ALARM#
+Interface Po193   In=456  Delta In=-280    Out=1624  Delta Out=168
+
+Interface Eth1/12   In=64  Delta In=-80    Out=272  Delta Out=-64
+Interface Eth1/49   In=3016  Delta In=-1256    Out=2392  Delta Out=-800    #ALARM#
+Interface Eth1/50   In=0  Delta In=0    Out=0  Delta Out=0
+Interface Eth1/53   In=184  Delta In=0    Out=1384  Delta Out=168
+Interface Eth1/54   In=736  Delta In=464    Out=200  Delta Out=-208    #ALARM#
+Interface Po12   In=3016  Delta In=-1256    Out=2392  Delta Out=-800    #ALARM#
+Interface Po193   In=920  Delta In=464    Out=1584  Delta Out=-40    #ALARM#
+
+
+<SNIP>
+
+
+Zu den OSPF Neigbors per CDP den Hostnamen finden. Voraussetzung ist,
+dass es nur einen CDP Neighbor pro Interface gibt:
+
+[admin@guestshell ~]$ cat OSPF_1.py
+import cli
+import json
+
+ospf_neigh_dict = json.loads(cli.clid("show ip ospf neighbor"))
+
+ospf_neigh_list = ospf_neigh_dict['TABLE_ctx']['ROW_ctx']['TABLE_nbr']['ROW_nbr']
+print("RID         Interface         Hostname")
+for list_entry in ospf_neigh_list:
+    interf = list_entry['intf']
+    rid = list_entry['rid']
+    cdp_neigh = json.loads(cli.clid("show cdp neighbor interface %s" % interf))
+    host_neigh = cdp_neigh['TABLE_cdp_neighbor_brief_info']['ROW_cdp_neighbor_brief_info']['device_id']
+    print(rid  + '     ' + interf + '            ' + host_neigh)
+
+
+Finale Version, bei der auch mehrer CDP Neighbors an einem Interface berücksichtigt werden:
+
+[admin@guestshell ~]$ cat OSPF_1.py
+import cli
+import json
+
+ospf_neigh_dict = json.loads(cli.clid("show ip ospf neighbor"))
+
+ospf_neigh_list = ospf_neigh_dict['TABLE_ctx']['ROW_ctx']['TABLE_nbr']['ROW_nbr']
+print("RID         Interface         Hostname")
+for list_entry in ospf_neigh_list:
+    interf = list_entry['intf']
+    rid = list_entry['rid']
+    addr = list_entry['addr']
+    cdp_neigh = json.loads(cli.clid("show cdp neighbor interface %s detail" % interf))['TABLE_cdp_neighbor_detail_info']['ROW_cdp_neighbor_detail_info']
+    if type(cdp_neigh)!= 'list':
+        cdp_neigh_list = [cdp_neigh]
+    else:
+        cdp_neigh_list = cdp_neigh
+    for neigh in cdp_neigh_list:
+        if neigh['v4addr'] == addr:
+            neigh_final = neigh
+    host_neigh = neigh_final['device_id']
+    print(rid  + '     ' + interf + '            ' + host_neigh)
+
+
+
+
+
+
+
+
+
+OSPF Neighbor RIDs anpingen und Meldung über erreichbarkeit.
+
+
+
+
+
+
+[admin@guestshell ~]$ cat OSPF_2.py
+import cli
+
+ospf_neigh_list = cli.cli("show ip ospf neighbor").split("\n")[3:-1]
+
+rid_list = []
+
+for neigh in ospf_neigh_list:
+    rid_list.append(neigh.split(' ')[1])
+
+print(rid_list)
+
+for rid in rid_list:
+     ping  = cli.cli('ping %s count 1' % rid)
+     if '64 bytes from' in ping:
+          print('RID %s is reachable' % rid)
+     else:
+         print('RID %s is not reachable' % rid)
+
+
+
+
+
+[admin@guestshell ~]$ python OSPF_2.py
+['3.3.3.3', '1.2.3.4']
+RID 3.3.3.3 is reachable
+RID 1.2.3.4 is not reachable
+
+
+Alles in einem:
+
+[admin@guestshell ~]$ cat OSPF_3.py
+import cli
+import json
+
+ospf_neigh_dict = json.loads(cli.clid("show ip ospf neighbor"))
+
+ospf_neigh_list = ospf_neigh_dict['TABLE_ctx']['ROW_ctx']['TABLE_nbr']['ROW_nbr']
+print("RID                   Interface         Hostname")
+for list_entry in ospf_neigh_list:
+    interf = list_entry['intf']
+    rid = list_entry['rid']
+    addr = list_entry['addr']
+    cdp_neigh = json.loads(cli.clid("show cdp neighbor interface %s detail" % interf))['TABLE_cdp_neighbor_detail_info']['ROW_cdp_neighbor_detail_info']
+    if type(cdp_neigh)!= 'list':
+        cdp_neigh_list = [cdp_neigh]
+    else:
+        cdp_neigh_list = cdp_neigh
+    for neigh in cdp_neigh_list:
+        if neigh['v4addr'] == addr:
+            neigh_final = neigh
+    host_neigh = neigh_final['device_id']
+    output = rid  + '       ' + ' '*(15 - len(rid)) + interf + '            ' + host_neigh
+    ping = cli.cli('ping %s count 1' % rid)
+    if '64 bytes from' in ping:
+          output += '    [REACHABLE]'
+    else:
+          output += '    [UNREACHABLE]'
+    print(output)
+    
+
+Automatisch OSPF auf allen routed Ports bis auf mgmt0 konfigurieren:
+
+
+
+
+[admin@guestshell ~]$ cat OSPF_1.py
+import cli
+import sys
+
+########### USER INPUT     ###########
+
+OSPF_ID = '1'
+OSPF_RID = '10.255.254.2'
+OSPF_AREA_ID = '0'
+
+######################################
+
+
+interfaces_list = cli.cli("show interface status").split('\n')
+
+layer3_interface_list = []
+for list_entry in interfaces_list:
+    if 'routed' in list_entry:
+        if 'mgmt0' not in list_entry:
+            layer3_interface_list.append(list_entry.split(' ')[0])
+
+
+print(layer3_interface_list)
+
+cli.cli('configure ; router ospf %s ; router-id %s' % (OSPF_ID , OSPF_RID))
+
+for intf in layer3_interface_list:
+    cli.cli('configure ; interface %s ; ip router ospf %s area %s' %(intf , OSPF_ID , OSPF_AREA_ID))
+
+cli.clip('show running ospf')
+cli.clip('show ip ospf interface brief')
+cli.clip('show ip ospf neighbor')
+
+
+
+
+
+
+
+
+
+
+
+

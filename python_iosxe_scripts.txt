@@ -1,0 +1,943 @@
+Description Eraser:
+
+
+csr1000v-1#sho interf description
+Interface                      Status         Protocol Description
+Gi1                            up             up       OOB Management
+Gi2                            up             up       to IOSv-1
+Gi3                            up             up       to IOSv-2
+Gi4                            up             up       to iosv-3
+Lo0                            up             up       Loopback
+Vi0                            up             up
+
+
+from cli import *
+import json
+
+input = cli("show ip interface brief")
+input_list = input.split('\n')
+input_short = input_list[2:-1]
+
+interface_list = []
+
+for string in input_short:
+    string_list = string.split(' ')
+    interface_list.append(string_list[0])
+
+for intf in interface_list:
+    cmd = "configure terminal ; interface %s ; no description" % intf
+    print(cmd)
+    cli(cmd)
+
+
+
+[guestshell@guestshell ~]$ python descr_eraser.py
+
+configure terminal ; interface GigabitEthernet1 ; no description
+configure terminal ; interface GigabitEthernet2 ; no description
+configure terminal ; interface GigabitEthernet3 ; no description
+configure terminal ; interface GigabitEthernet4 ; no description
+configure terminal ; interface Loopback0 ; no description
+configure terminal ; interface VirtualPortGroup0 ; no description
+[guestshell@guestshell ~]$
+
+
+
+[guestshell@guestshell ~]$ dohost "show interface description"
+
+Interface                      Status         Protocol Description
+Gi1                            up             up
+Gi2                            up             up
+Gi3                            up             up
+Gi4                            up             up
+Lo0                            up             up
+Vi0                            up             up
+
+
+
+Description Automizer:
+
+
+
+[guestshell@guestshell ~]$ dohost "show interfae description"
+Syntax error while parsing 'show interfae description'.Cmd exec error.
+[guestshell@guestshell ~]$ dohost "show interface description"
+
+Interface                      Status         Protocol Description
+Gi1                            up             up
+Gi2                            up             up
+Gi3                            up             up
+Gi4                            up             up
+Lo0                            up             up
+Vi0                            up             up
+
+
+[guestshell@guestshell ~]$ dohost "show cdp neighbors"
+
+Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge
+                  S - Switch, H - Host, I - IGMP, r - Repeater, P - Phone,
+                  D - Remote, C - CVTA, M - Two-port Mac Relay
+Device ID        Local Intrfce     Holdtme    Capability  Platform  Port ID
+iosv-3.virl.info Gig 4             130              R B             Gig 0/1
+IOSv-1.virl.info Gig 2             159              R B             Gig 0/2
+IOSv-2.virl.info Gig 3             173              R B             Gig 0/2
+Total cdp entries displayed : 3
+
+
+from cli import *
+
+cdp_neigh = cli("show cdp neighbors")
+cdp_neigh_list = cdp_neigh.split('\n')
+cdp_neigh_short = cdp_neigh_list[5:-2]
+
+
+
+
+
+length = len(cdp_neigh_short)
+
+
+neigh = []
+sintf = []
+dintf = []
+
+for string in cdp_neigh_short:
+   intf_list = string.split(' ')
+   while '' in intf_list:
+       intf_list.remove('')
+   neigh.append(intf_list[0])
+   dintf.append(intf_list[-2] + intf_list[-1])
+   sintf.append(intf_list[1] + intf_list[2])
+
+neigh_count = len(neigh)
+
+i = 0
+while i <= neigh_count - 1:
+    cmd = "interface %s \n description Link -> %s %s *** from Python ***" % (sintf[i], neigh[i], dintff
+[i])
+    print(cmd)
+    configure(cmd)
+    i += 1
+
+
+
+
+
+
+[guestshell@guestshell ~]$ python descr_automizer.py
+
+interface Gig4
+ description Link -> iosv-3.virl.info Gig0/1 *** from Python ***
+interface Gig2
+ description Link -> IOSv-1.virl.info Gig0/2 *** from Python ***
+interface Gig3
+ description Link -> IOSv-2.virl.info Gig0/2 *** from Python ***
+[guestshell@guestshell ~]$ dohost "show interface description"
+
+Interface                      Status         Protocol Description
+Gi1                            up             up
+Gi2                            up             up       Link -> IOSv-1.virl.info Gig0/2 *** from Python ***
+Gi3                            up             up       Link -> IOSv-2.virl.info Gig0/2 *** from Python ***
+Gi4                            up             up       Link -> iosv-3.virl.info Gig0/1 *** from Python ***
+Lo0                            up             up
+Vi0                            up             up
+
+
+
+
+
+[guestshell@guestshell ~]$ python descr_eraser.py
+
+
+configure terminal ; interface GigabitEthernet1 ; no description
+configure terminal ; interface GigabitEthernet2 ; no description
+configure terminal ; interface GigabitEthernet3 ; no description
+configure terminal ; interface GigabitEthernet4 ; no description
+configure terminal ; interface Loopback0 ; no description
+configure terminal ; interface VirtualPortGroup0 ; no description
+[guestshell@guestshell ~]$ dohost "show interface description"
+
+Interface                      Status         Protocol Description
+Gi1                            up             up
+Gi2                            up             up
+Gi3                            up             up
+Gi4                            up             up
+Lo0                            up             up
+Vi0                            up             up
+
+
+BGP Reachability Checker:
+
+
+
+from cli import *
+
+bgp_neigh = execute("show bgp ipv4 unicast summary")
+bgp_neigh_list = bgp_neigh.split('\n')
+print(bgp_neigh_list[10:])
+
+
+neigh_ip = []
+
+for row in bgp_neigh_list[10:]:
+    row_list = row.split(' ')
+    neigh_ip.append(row_list[0])
+
+print(neigh_ip)
+
+for ip in neigh_ip:
+     cmd = "ping %s" % ip
+     out = execute(cmd)
+     out_list = out.split('\n')
+     if out_list[-2] == '!!!!!':
+            print('BGP Neighbor %s is reachable!' % ip)
+     else:
+            print('BGP Neighbor %s is UNREACHABLE!' % ip)
+
+
+
+[guestshell@guestshell ~]$ dohost "show bgp ipv4 unicast sum"
+
+BGP router identifier 192.168.0.4, local AS number 1
+BGP table version is 5, main routing table version 5
+4 network entries using 992 bytes of memory
+4 path entries using 544 bytes of memory
+2/2 BGP path/bestpath attribute entries using 560 bytes of memory
+0 BGP route-map cache entries using 0 bytes of memory
+0 BGP filter-list cache entries using 0 bytes of memory
+BGP using 2096 total bytes of memory
+BGP activity 4/0 prefixes, 4/0 paths, scan interval 60 secs
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+192.168.0.1     4            1     317     320        5    0    0 04:44:40        1
+192.168.0.2     4            1     319     319        5    0    0 04:44:42        1
+192.168.0.3     4            1     318     318        5    0    0 04:44:39        1
+
+[guestshell@guestshell ~]$ python bgp_reach.py
+['192.168.0.1     4            1     318     320        5    0    0 04:44:46        1', '192.168.0.2     4            1     319     319        5    0    0 04:44:48        1', '192.168.0.3     4            1     318     318        5    0    0 04:44:45        1']
+['192.168.0.1', '192.168.0.2', '192.168.0.3']
+BGP Neighbor 192.168.0.1 is reachable!
+BGP Neighbor 192.168.0.2 is reachable!
+BGP Neighbor 192.168.0.3 is reachable!
+
+
+
+BGP Reachability Checker mit Routen-Test:
+
+from cli import *
+
+bgp_neigh = execute("show bgp ipv4 unicast summary")
+bgp_neigh_list = bgp_neigh.split('\n')
+
+
+
+neigh_ip = []
+
+for row in bgp_neigh_list[10:]:
+    row_list = row.split(' ')
+    neigh_ip.append(row_list[0])
+
+
+
+for ip in neigh_ip:
+     cmd = "ping %s" % ip
+     out = execute(cmd)
+     out_list = out.split('\n')
+     if out_list[-2] == '!!!!!':
+            route = execute("show ip route %s" % ip)
+            route_list = route.split('\n')
+            route_row1 = route_list[0].split(' ')
+            route_row2 = route_list[1].split('"')
+            print('BGP Neighbor %s is REACHABLE! Route to Neighbor is %s (%s).' % (ip, route_row1[-1], route_row2[1]))
+
+     else:
+
+            route = execute("show ip route %s" % ip)
+            if route == "% Subnet not in table":
+                   print('BGP Neighbor %s is UNREACHABLE! No Route to Neighbor.' % ip)
+            else:
+                   route_list = route.split('\n')
+                   route_row1 = route_list[0].split(' ')
+                   route_row2 = route_list[1].split('"')
+                   print('BGP Neighbor %s is UNREACHABLE! Route %s (%s) to Neighbor present.' % (ip, route_row1[-1], route_row2[1]))
+                
+
+
+Adresse 192.168.0.7 ist fiktiv:
+
+[guestshell@guestshell ~]$ dohost "show bgp ipv4 unicast sum"
+
+BGP router identifier 192.168.0.4, local AS number 1
+BGP table version is 5, main routing table version 5
+4 network entries using 992 bytes of memory
+4 path entries using 544 bytes of memory
+2/2 BGP path/bestpath attribute entries using 560 bytes of memory
+0 BGP route-map cache entries using 0 bytes of memory
+0 BGP filter-list cache entries using 0 bytes of memory
+BGP using 2096 total bytes of memory
+BGP activity 4/0 prefixes, 4/0 paths, scan interval 60 secs
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+192.168.0.1     4            1     388     391        5    0    0 05:50:01        1
+192.168.0.2     4            1     390     392        5    0    0 05:50:03        1
+192.168.0.3     4            1     390     390        5    0    0 05:50:00        1
+192.168.0.7     4            1       0       0        1    0    0 never    Idle
+
+Es ist dann auch keine Route vorhanden:
+
+[guestshell@guestshell ~]$ python bgp_reach_route.py
+
+BGP Neighbor 192.168.0.1 is REACHABLE! Route to Neighbor is 192.168.0.1/32 (ospf 1).
+BGP Neighbor 192.168.0.2 is REACHABLE! Route to Neighbor is 192.168.0.2/32 (ospf 1).
+BGP Neighbor 192.168.0.3 is REACHABLE! Route to Neighbor is 192.168.0.3/32 (ospf 1).
+BGP Neighbor 192.168.0.7 is UNREACHABLE! No Route to Neighbor.
+
+IOSXE_1
+Jetzt wird eine statische Route konfiguriert:
+
+csr1000v-1(config)#ip route 192.168.0.0 255.255.255.0 null 0
+
+[guestshell@guestshell ~]$ python bgp_reach_route.py
+
+BGP Neighbor 192.168.0.1 is REACHABLE! Route to Neighbor is 192.168.0.1/32 (ospf 1).
+BGP Neighbor 192.168.0.2 is REACHABLE! Route to Neighbor is 192.168.0.2/32 (ospf 1).
+BGP Neighbor 192.168.0.3 is REACHABLE! Route to Neighbor is 192.168.0.3/32 (ospf 1).
+BGP Neighbor 192.168.0.7 is UNREACHABLE! Route 192.168.0.0/24 (static) to Neighbor present.
+
+
+Loopfinder-Funktion:
+
+Routing Tabelle
+
+IOSXE_1#sho ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2
+       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2
+       ia - IS-IS inter area, * - candidate default, U - per-user static route
+       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP
+       a - application route
+       + - replicated route, % - next hop override, p - overrides from PfR
+
+Gateway of last resort is not set
+
+      10.0.0.0/8 is variably subnetted, 12 subnets, 3 masks
+O        10.0.0.4/30 [110/2] via 10.0.0.17, 05:31:41, GigabitEthernet3
+                     [110/2] via 10.0.0.13, 05:31:35, GigabitEthernet2
+O        10.0.0.8/30 [110/2] via 10.0.0.22, 05:31:39, GigabitEthernet4
+                     [110/2] via 10.0.0.17, 05:31:41, GigabitEthernet3
+C        10.0.0.12/30 is directly connected, GigabitEthernet2
+L        10.0.0.14/32 is directly connected, GigabitEthernet2
+C        10.0.0.16/30 is directly connected, GigabitEthernet3
+L        10.0.0.18/32 is directly connected, GigabitEthernet3
+C        10.0.0.20/30 is directly connected, GigabitEthernet4
+L        10.0.0.21/32 is directly connected, GigabitEthernet4
+C        10.10.10.0/24 is directly connected, VirtualPortGroup0
+L        10.10.10.254/32 is directly connected, VirtualPortGroup0
+O        10.255.255.2/32 [110/2] via 10.0.0.17, 01:55:38, GigabitEthernet3
+C        10.255.255.4/32 is directly connected, Loopback1
+      192.168.0.0/32 is subnetted, 4 subnets
+O        192.168.0.1 [110/2] via 10.0.0.13, 05:31:35, GigabitEthernet2
+O        192. :168.0.2 [110/2] via 10.0.0.17, 05:31:41, GigabitEthernet3
+O        192.168.0.3 [110/2] via 10.0.0.22, 05:31:39, GigabitEthernet4
+C        192.168.0.4 is directly connected, Loopback0
+S     193.168.0.0/24 is directly connected, Null0
+      194.168.0.0/32 is subnetted, 1 subnets
+O        194.168.0.1 [110/2] via 10.0.0.13, 01:47:41, GigabitEthernet2
+
+[guestshell@guestshell ~]$ vi loopfinder.py
+from cli import *
+import re
+
+def loopfinder(rt, include_locals = True):
+    
+    if type(include_locals) != bool:
+         sys.exit(0)
+
+
+    rt_list = rt.split("\n")
+    loopback_parts = []
+
+    for str in rt_list:
+        if "/32" in str:
+            loopback_parts.append(str)
+
+    list_sub = []
+    list_nosub = []
+
+    for str in loopback_parts:
+        if "subnetted" not in str:
+            list_nosub.append(str)
+        else:
+            list_sub.append(str)
+
+    sub_loop = []
+
+    for sub in list_sub:
+        sub_list = sub.split(" ")
+        while "" in sub_list:
+            sub_list.remove("")
+        rt_entry = execute("show ip route | section %s" % sub_list[0])
+        rt_entry_list = rt_entry.split("\n")
+        for str2 in rt_entry_list:
+            if "subnetted" not in str2:
+                str2_list = str2.split(" ")
+                while "" in str2_list:
+                    str2_list.remove("")
+                if include_locals == True:
+                    sub_loop.append(str2_list[1])
+                else:
+                    if str2_list[0] != "C":
+                          sub_loop.append(str2_list[1])
+
+
+
+    sub_noloop = []
+
+    for sub in list_nosub:
+        sub_list = sub.split(" ")
+        while "" in sub_list:
+            sub_list.remove("")
+
+        if sub_list[0] != "L" and sub_list[0] != "C":
+            sub_noloop.append(sub_list[1][:-3])
+        if include_locals == True:
+            if sub_list[0] == "C" and re.search("Loopback", sub_list[-1]) != None:
+                sub_noloop.append(sub_list[1][:-3])
+
+    loopbacks = sub_loop + sub_noloop
+
+    return loopbacks
+
+
+
+
+
+Test Script mit import:
+
+[guestshell@guestshell ~]$ vi test_lofi.py
+from loopfinder import *
+from cli import *
+
+rt = execute("show ip route")
+
+lb = loopfinder(rt, False)
+
+print(lb)
+
+lb2 = loopfinder(rt, True)
+
+print(lb2)
+
+lb3 = loopfinder(rt, 'Truhe')
+
+Test:
+
+
+[guestshell@guestshell ~]$ python test_lofi.py
+
+['192.168.0.1', '192.168.0.2', '192.168.0.3', '194.168.0.1', '10.255.255.2']
+
+['192.168.0.1', '192.168.0.2', '192.168.0.3', '192.168.0.4', '194.168.0.1', '10.255.255.2', '10.255.255.4']
+
+
+funktioniert!!!
+
+
+
+Automatisierte BGP-Konfiguration:
+
+router bgp 1
+ bgp router-id 192.168.0.4
+ bgp log-neighbor-changes
+ neighbor 192.168.0.1 remote-as 1
+ neighbor 192.168.0.1 description iBGP peer IOSv-1
+ neighbor 192.168.0.1 update-source Loopback0
+ neighbor 192.168.0.2 remote-as 1
+ neighbor 192.168.0.2 description iBGP peer IOSv-2
+ neighbor 192.168.0.2 update-source Loopback0
+ neighbor 192.168.0.3 remote-as 1
+ neighbor 192.168.0.3 description iBGP peer iosv-3
+ neighbor 192.168.0.3 update-source Loopback0
+ !
+ address-family ipv4
+  network 192.168.0.4 mask 255.255.255.255
+  neighbor 192.168.0.1 activate
+  neighbor 192.168.0.2 activate
+  neighbor 192.168.0.3 activate
+ exit-address-family
+
+
+IOSXE_1#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2
+       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2
+       ia - IS-IS inter area, * - candidate default, U - per-user static route
+       o - ODR, P - periodic downloaded static route, H - NHRP, l - LISP
+       a - application route
+       + - replicated route, % - next hop override, p - overrides from PfR
+
+Gateway of last resort is not set
+
+      10.0.0.0/8 is variably subnetted, 12 subnets, 3 masks
+O        10.0.0.4/30 [110/2] via 10.0.0.17, 00:00:10, GigabitEthernet3
+                     [110/2] via 10.0.0.13, 00:00:10, GigabitEthernet2
+O        10.0.0.8/30 [110/2] via 10.0.0.22, 00:00:10, GigabitEthernet4
+                     [110/2] via 10.0.0.17, 00:00:10, GigabitEthernet3
+C        10.0.0.12/30 is directly connected, GigabitEthernet2
+L        10.0.0.14/32 is directly connected, GigabitEthernet2
+C        10.0.0.16/30 is directly connected, GigabitEthernet3
+L        10.0.0.18/32 is directly connected, GigabitEthernet3
+C        10.0.0.20/30 is directly connected, GigabitEthernet4
+L        10.0.0.21/32 is directly connected, GigabitEthernet4
+C        10.10.10.0/24 is directly connected, VirtualPortGroup0
+L        10.10.10.254/32 is directly connected, VirtualPortGroup0
+O        10.255.255.2/32 [110/2] via 10.0.0.17, 00:00:10, GigabitEthernet3
+C        10.255.255.4/32 is directly connected, Loopback1
+      192.168.0.0/32 is subnetted, 4 subnets
+O        192.168.0.1 [110/2] via 10.0.0.13, 00:00:10, GigabitEthernet2
+O        192.168.0.2 [110/2] via 10.0.0.17, 00:00:10, GigabitEthernet3
+O        192.168.0.3 [110/2] via 10.0.0.22, 00:00:10, GigabitEthernet4
+C        192.168.0.4 is directly connected, Loopback0
+S     193.168.0.0/24 is directly connected, Null0
+      194.168.0.0/32 is subnetted, 1 subnets
+O        194.168.0.1 [110/2] via 10.0.0.13, 00:00:10, GigabitEthernet2
+
+[guestshell@guestshell ~]$ vi bgp_automizer.py
+
+from cli import *
+from loopfinder import *
+import sys
+from copy import copy
+from re import *
+
+running_bgp = execute("show running | section router bgp")
+if running_bgp == "":
+    print("No BGP Configuration present.")
+    asn = raw_input("New ASN: ")
+    rid = raw_input("New RID: ")
+else:
+    asn = running_bgp.split("\n")[0].split(" ")[-1]
+    rid = running_bgp.split("\n")[1].split(" ")[-1]
+    print("BGP Configuration with ASN %s and RID %s present." % (asn, rid))
+    user_in2 = raw_input("Delete existing BGP Configuration? (y/n) ")
+    if user_in2 == "y":
+        configure("no router bgp %s" % asn)
+        print("Existing BGP Configuration deleted.")
+        asn = raw_input("New ASN: ")
+        rid = raw_input("New RID: ")
+    if user_in2 == "n":
+        print("Existing BGP Configuration will be used.\nNew Neighbors will be merged.")
+    if user_in2 != "n" and user_in2 != "y":
+        print("Invalid Input. Try again.")
+        sys.exit(0)
+
+
+
+
+upd_src = raw_input("Update Source Loopback Interface Number: ")
+
+rt = execute("show ip route")
+load_loopbacks = loopfinder(rt, False)
+print("Existing Loopback Addresses are:\n")
+for lb in load_loopbacks:
+    print(lb)
+
+excl_loop = ""
+while excl_loop == "":
+    lo2 = copy(load_loopbacks)
+    excl_loop = raw_input("Exclude Loopback Addresses (List separated by comma): ")
+    excl_loop_list = excl_loop.split(",")
+    if excl_loop == "" or bool(search(r"^\s*$", excl_loop)) == True:
+         break
+    try:
+        for loop in excl_loop_list:
+            lo2.remove(loop.rstrip().lstrip())
+    except ValueError:
+        print("One or more Addresses don't exist or Invalid Input.\nTry again!")
+        excl_loop = ""
+
+load_loopbacks = lo2
+
+
+bgp_config = ["router bgp %s" % asn, "bgp router-id %s" % rid]
+for neigh_addr in load_loopbacks:
+     neigh_config1 = "neighbor %s remote-as %s" % (neigh_addr, asn)
+     neigh_config2 = "neighbor %s update-source Loopback%s" % (neigh_addr, upd_src)
+     neigh_config3 = "neighbor %s next-hop-self" % neigh_addr
+     bgp_config.append(neigh_config1)
+     bgp_config.append(neigh_config2)
+     bgp_config.append(neigh_config3)
+
+print(bgp_config)
+configure(bgp_config)
+
+print("Complete BGP Configuration: \n")
+executep("show running | section router bgp")
+
+
+[guestshell@guestshell ~]$ python bgp_automizer.py
+No BGP Configuration present.
+New ASN: 4
+New RID: 1.2.3.4
+Update Source Loopback Interface Number: 0
+Existing Loopback Addresses are:
+
+192.168.0.1
+192.168.0.2
+192.168.0.3
+194.168.0.1
+10.255.255.2
+Exclude Loopback Addresses (List separated by comma): 10.255.255.2 , 194.168.0.1
+Complete BGP Configuration:
+
+router bgp 4
+ bgp router-id 1.2.3.4
+ bgp log-neighbor-changes
+ neighbor 192.168.0.1 remote-as 4
+ neighbor 192.168.0.1 update-source Loopback0
+ neighbor 192.168.0.1 next-hop-self
+ neighbor 192.168.0.2 remote-as 4
+ neighbor 192.168.0.2 update-source Loopback0
+ neighbor 192.168.0.2 next-hop-self
+ neighbor 192.168.0.3 remote-as 4
+ neighbor 192.168.0.3 update-source Loopback0
+ neighbor 192.168.0.3 next-hop-self
+
+
+[guestshell@guestshell ~]$ python bgp_automizer.py
+BGP Configuration with ASN 4 and RID 1.2.3.4 present.
+Delete existing BGP Configuration? (y/n) y
+Existing BGP Configuration deleted.
+New ASN: 1
+New RID: 1.1.1.1
+Update Source Loopback Interface Number: 0
+Existing Loopback Addresses are:
+
+192.168.0.1
+192.168.0.2
+192.168.0.3
+194.168.0.1
+10.255.255.2
+Exclude Loopback Addresses (List separated by comma): 10.255.255.2,194.168.0.1,192.168.0.3
+Complete BGP Configuration:
+
+router bgp 1
+ bgp router-id 1.1.1.1
+ bgp log-neighbor-changes
+ neighbor 192.168.0.1 remote-as 1
+ neighbor 192.168.0.1 update-source Loopback0
+ neighbor 192.168.0.1 next-hop-self
+ neighbor 192.168.0.2 remote-as 1
+ neighbor 192.168.0.2 update-source Loopback0
+ neighbor 192.168.0.2 next-hop-self
+
+
+[guestshell@guestshell ~]$ python bgp_automizer.py
+BGP Configuration with ASN 1 and RID 1.1.1.1 present.
+Delete existing BGP Configuration? (y/n) n
+Existing BGP Configuration will be used.
+New Neighbors will be merged.
+Update Source Loopback Interface Number: 0
+Existing Loopback Addresses are:
+
+192.168.0.1
+192.168.0.2
+192.168.0.3
+194.168.0.1
+10.255.255.2
+Exclude Loopback Addresses (List separated by comma): 10.255.255.2,194.168.0.1
+Complete BGP Configuration:
+
+router bgp 1
+ bgp router-id 1.1.1.1
+ bgp log-neighbor-changes
+ neighbor 192.168.0.1 remote-as 1
+ neighbor 192.168.0.1 update-source Loopback0
+ neighbor 192.168.0.1 next-hop-self
+ neighbor 192.168.0.2 remote-as 1
+ neighbor 192.168.0.2 update-source Loopback0
+ neighbor 192.168.0.2 next-hop-self
+ neighbor 192.168.0.3 remote-as 1
+ neighbor 192.168.0.3 update-source Loopback0
+ neighbor 192.168.0.3 next-hop-self
+
+
+
+[guestshell@guestshell ~]$ dohost "show bgp ipv4 unicast summary"
+
+BGP router identifier 1.1.1.1, local AS number 1
+BGP table version is 1, main routing table version 1
+3 network entries using 744 bytes of memory
+3 path entries using 408 bytes of memory
+1/0 BGP path/bestpath attribute entries using 280 bytes of memory
+0 BGP route-map cache entries using 0 bytes of memory
+0 BGP filter-list cache entries using 0 bytes of memory
+BGP using 1432 total bytes of memory
+BGP activity 3/0 prefixes, 3/0 paths, scan interval 60 secs
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+192.168.0.1     4            1       6       2        1    0    0 00:00:21        1
+192.168.0.2     4            1       6       2        1    0    0 00:00:20        1
+192.168.0.3     4            1       6       2        1    0    0 00:00:17        1
+
+
+
+
+
+
+
+
+++++++++++   letzter Stand       ++++++++++++++++++++++++++++
+
+
+Nebenbei Eingqabeschleife: Ergänzung in Hilfen für Python Scripting:
+
+x = 10
+inp = ""
+while inp == "":
+    inp = raw_input("Your input: ")
+    try:
+        if int(inp) == x:
+            print("Treffer!!")
+        else:
+            inp = ""
+    except ValueError:
+        print("Zahl eingeben!")
+        inp = ""
+
+et@ubuntu:~/Python/TESTs$ python input_loop.py 
+Your input: 5
+Your input: 4
+Your input: a
+Zahl eingeben!
+Your input: 7
+Your input: gwrg52t
+Zahl eingeben!
+Your input: 55
+Your input: 10
+Treffer!!
+et@ubuntu:~/Python/TESTs$ 
+
+
+
+Lastschwankungsdedektor:
+
+- alle connected Interfaces werden ermittelt
+- 5 min last mittel in Bps in und out wir bestimmt
+- abfrage erfolgt periodich, das delta zur letzten abfrage wird bestimmt
+- beim überschreiten eines schwellwerts wird für das Interface ein ALARM ausgegeben
+
+[guestshell@guestshell ~]$ cat activeif_1.py
+import cli
+import sys
+import time
+import copy
+
+
+intv = int(sys.argv[1])
+alarm_thr = int(sys.argv[2])
+
+def stats():
+
+    if_string = cli.cli('show ip interface brief')
+    if_string_list = if_string.split('\n')
+
+
+    if_list = []
+    for str in if_string_list:
+        if 'up                    up' in str:
+            intf = str.split(' ')[0]
+            if 'GigabitEthernet' in intf or 'Po' in intf:
+                if_list.append(intf)
+
+
+
+    result_dict = {}
+
+    for intf in if_list:
+        if_stats_string = cli.cli('show interface %s' % intf)
+        if_stats_list = if_stats_string.split('\n')
+        for str_if_list in if_stats_list:
+            if 'minute input rate' in str_if_list:
+                rin = str_if_list.split(' ')[6]
+
+            if 'minute output rate' in str_if_list:
+                rout = str_if_list.split(' ')[6]
+
+        result_dict[intf] = {'Rate In' : rin , 'Rate Out' : rout}
+
+
+    return [result_dict , if_list]
+
+
+res_old = stats()[0]
+
+i = 1
+
+while i == 1:
+    time.sleep(intv)
+    res_new = stats()[0]
+    if_list = stats()[1]
+    out_string = ''
+    for intf in if_list:
+        deltain = int(res_new[intf]['Rate In']) - int(res_old[intf]['Rate In'])
+        deltaout = int(res_new[intf]['Rate Out']) - int(res_old[intf]['Rate Out'])
+        out_string += 'Interface ' + intf + '   In=' + res_new[intf]['Rate In'] + '  Delta In=' + str(deltain) +  '    Out=' + res_new[intf]['Rate Out'] + '  Delta Out=' + str(deltaout)
+
+        if abs(deltain) > alarm_thr or abs(deltaout) > alarm_thr:
+            out_string += '    #ALARM#'
+
+        out_string += '\n'
+    print(out_string)
+    res_old = res_new.copy()
+
+
+Version mit Abfangen von Fehler bei Interface State Change:
+
+
+[guestshell@guestshell ~]$ cat activeif_2.py
+import cli
+import sys
+import time
+import copy
+
+
+intv = int(sys.argv[1])
+alarm_thr = int(sys.argv[2])
+
+def stats():
+
+    if_string = cli.cli('show ip interface brief')
+    if_string_list = if_string.split('\n')
+
+
+    if_list = []
+    for str in if_string_list:
+        if 'up                    up' in str:
+            intf = str.split(' ')[0]
+            if 'GigabitEthernet' in intf or 'Po' in intf:
+                if_list.append(intf)
+
+
+
+    result_dict = {}
+
+    for intf in if_list:
+        if_stats_string = cli.cli('show interface %s' % intf)
+        if_stats_list = if_stats_string.split('\n')
+        for str_if_list in if_stats_list:
+            if 'minute input rate' in str_if_list:
+                rin = str_if_list.split(' ')[6]
+
+            if 'minute output rate' in str_if_list:
+                rout = str_if_list.split(' ')[6]
+
+        result_dict[intf] = {'Rate In' : rin , 'Rate Out' : rout}
+
+
+    return [result_dict , if_list]
+
+
+res_old = stats()[0]
+
+i = 1
+
+while i == 1:
+    time.sleep(intv)
+    res_new = stats()[0]
+    if_list = stats()[1]
+    out_string = ''
+    for intf in if_list:
+        try:
+            deltain = int(res_new[intf]['Rate In']) - int(res_old[intf]['Rate In'])
+            deltaout = int(res_new[intf]['Rate Out']) - int(res_old[intf]['Rate Out'])
+            out_string += 'Interface ' + intf + '   In=' + res_new[intf]['Rate In'] + '  Delta In=' + str(deltain) +  '    Out=' + res_new[intf]['Rate Out'] + '  Delta Out=' + str(deltaout)
+
+            if abs(deltain) > alarm_thr or abs(deltaout) > alarm_thr:
+                out_string += '    #ALARM#'
+
+            out_string += '\n'
+        except KeyError:
+            print("Active interface state change in runtime execution!\n")
+            
+    print(out_string)
+    res_old = res_new.copy()
+
+
+
+
+
+
+
+Hostname zu OSPF Neighbor ermitteln und Ping der RID (mehrere CDP Neighbors pro
+Interface werden berücksichtigt):
+
+[guestshell@guestshell ~]$ cat OSPF_IOS_3.py
+import cli
+
+ospf_neigh_string = cli.execute("show ip ospf neighbor")
+
+
+ospf_allneigh_list = ospf_neigh_string.split("\n")[1:]
+print('RID                  Interface             Hostname')
+for entry in ospf_allneigh_list:
+    ospf_neigh = entry.split(' ')
+    while '' in ospf_neigh:
+         ospf_neigh.remove('')
+    rid = ospf_neigh[0]
+    interf = ospf_neigh[-1]
+    addr = ospf_neigh[-2]
+    #print (rid , interf)
+    cdp_info_all_neighbors = cli.execute("show cdp neighbor %s detail" % interf).split('-------------------------')[1:]
+
+    #print(cdp_info_all_neighbors)
+    for cdp_neigh in cdp_info_all_neighbors:
+        if addr in cdp_neigh:
+            cdp_neigh_split = cdp_neigh.split('\n')[1:]
+            for list_ele  in cdp_neigh_split:
+                if 'Device ID:' in list_ele:
+                    neigh_hostname = list_ele[10:].lstrip()
+    output = rid + '      ' + ' '*(15 - len(rid)) + interf + '      ' + neigh_hostname
+    ping = cli.execute('ping %s' % rid)
+    if '!' in ping:
+        output += '     [REACHABLE]'
+    else:
+        output += '     [UNREACHABLE]'
+    print(output)
+
+
+
+
+Automatisch OSPF au allen Layer-3 Interfaces bis auf das Managemen-Interface Gig1 erzeugen:
+
+[guestshell@guestshell ~]$ cat OSPF_1.py
+import cli
+
+########### USER INPUT     ###########
+
+OSPF_ID = '1'
+OSPF_RID = '10.255.255.1'
+OSPF_AREA_ID = '0'
+
+######################################
+
+
+interfaces_list = cli.execute("show ip interface brief").split('\n')[1:]
+layer3_interface_list = []
+for list_entry in interfaces_list:
+    if 'unassigned' not in list_entry:
+        if 'GigabitEthernet1' not in list_entry:
+            layer3_interface_list.append(list_entry.split(' ')[0])
+
+
+print(layer3_interface_list)
+
+cli.configure(['router ospf %s' % OSPF_ID , 'router-id %s' % OSPF_RID])
+
+for intf in layer3_interface_list:
+    cli.configure(['interface %s' % intf , 'ip ospf %s area %s' %(OSPF_ID , OSPF_AREA_ID)])
+
+cli.clip('show running | section ospf')
+cli.clip('show ip ospf interface brief')
+cli.clip('show ip ospf neighbor')
