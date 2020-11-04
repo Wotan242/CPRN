@@ -15,7 +15,7 @@ xpath_nx = './nx:System/nx:ipv4-items/nx:inst-items/nx:dom-items/nx:Dom-list/nx:
 IPs_IOS = ['192.168.181.11' , '192.168.181.12']
 IPs_NX = ['192.168.181.21' , '192.168.181.22' , '192.168.181.23' , '192.168.181.24']
 
-
+###  substitute with management addresses 10.196.0.x of your lab environment !!!!!!!!
 
 ################ subtree filter expresions    ############################
 
@@ -184,7 +184,7 @@ def bgp_config_nx(mgmt_addr , asn):
 
 ##################   apply functions       #####################################
 
-#### USER INPUT AREA ##########
+#### USER INPUT AREA , substitute adresses with management addresses 10.196.0.x of lab environment !!!!!!    ##########
 
 my_ios_ip = '192.168.181.11' 
 
