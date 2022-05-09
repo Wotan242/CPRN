@@ -1,0 +1,4 @@
+app-hosting appid guestshell
+ app-vnic gateway0 virtualportgroup 0 guest-interface 0 
+   guest-ipaddress 10.10.2.1 netmask 255.255.255.0 
+ app-default-gateway 10.10.2.254 guest-interface 0
