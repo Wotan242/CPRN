@@ -64,7 +64,7 @@ print(layer3_interface_list)
 
 cli.configure(['router ospf %s' % OSPF_ID , 'router-id %s' % OSPF_RID])
 
-for intf in layer3_interface_list[:-1]:
+for intf in layer3_interface_list:
     cli.configure(['interface %s' % intf , 'ip ospf %s area %s' %(OSPF_ID , OSPF_AREA_ID)])
 
 cli.clip('show running | section ospf')
