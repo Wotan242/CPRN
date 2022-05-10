@@ -27,7 +27,7 @@ print(layer3_interface_list)
 cli.cli('configure ; feature ospf ; router ospf %s ; router-id %s' % (OSPF_ID , OSPF_RID))
 
 for intf in layer3_interface_list:
-    cli.cli('configure ; interface %s ; ip router ospf %s area %s' %(intf , OSPF_ID , OSPF_AREA_ID))
+    cli.cli('configure ; interface %s ; ip router ospf %s area %s ; ip ospf network point-to-point' %(intf , OSPF_ID , OSPF_AREA_ID))
 
 cli.clip('show running ospf')
 cli.clip('show ip ospf interface brief')
@@ -65,7 +65,7 @@ print(layer3_interface_list)
 cli.configure(['router ospf %s' % OSPF_ID , 'router-id %s' % OSPF_RID])
 
 for intf in layer3_interface_list:
-    cli.configure(['interface %s' % intf , 'ip ospf %s area %s' %(OSPF_ID , OSPF_AREA_ID)])
+    cli.configure(['interface %s' % intf , 'ip ospf %s area %s' %(OSPF_ID , OSPF_AREA_ID) , 'ip ospf network point-to-point'])
 
 cli.clip('show running | section ospf')
 cli.clip('show ip ospf interface brief')
